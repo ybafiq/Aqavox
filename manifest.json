@@ -1,0 +1,25 @@
+{
+  "name": "Aqavox - Advanced Chat & Vision Workspace",
+  "short_name": "Aqavox",
+  "description": "A lightweight, self-contained AI chat and image generation workspace.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "Aqavox.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Aqavox.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

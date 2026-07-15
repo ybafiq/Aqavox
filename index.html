@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aqavox - Advanced Chat & Vision Workspace</title>
     <link rel="icon" type="image/png" href="Aqavox.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0c0e">
+    <link rel="apple-touch-icon" href="Aqavox.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
@@ -452,6 +456,60 @@
             white-space: nowrap;
         }
 
+        .history-item-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-actions {
+            display: none;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .history-item:hover .history-item-actions {
+            display: flex;
+        }
+
+        @media (max-width: 768px) {
+            .history-item-actions {
+                display: flex;
+            }
+        }
+
+        .hist-action-btn {
+            background: transparent;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .hist-action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+        body.theme-light .hist-action-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .hist-action-btn.pinned {
+            color: var(--y-accent);
+        }
+
+        .hist-action-btn.danger:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.12);
+        }
+
         /* --- Asset Vault Container --- */
         .vault-grid {
             display: grid;
@@ -532,6 +590,24 @@
             position: relative;
             overflow: hidden;
             width: 100%;
+        }
+
+        .offline-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 179, 0, 0.12);
+            color: #ffb300;
+            font-size: 12.5px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 179, 0, 0.25);
+            flex-shrink: 0;
+            animation: fadeIn 0.25s ease-out;
+        }
+        .offline-banner svg {
+            flex-shrink: 0;
         }
 
         /* Nav Header Area containing the hamburger toggle */
@@ -1642,6 +1718,10 @@
     </aside>
 
     <main class="main-content" onclick="handleOutsideContentClick(event)">
+        <div id="offline-banner" class="offline-banner" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+            <span>You're offline — messages won't send until your connection returns.</span>
+        </div>
         <header class="header-nav">
             <button class="menu-toggle-btn" title="Toggle Sidebar Menu" onclick="toggleSidebarState(event)">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1793,6 +1873,8 @@
         let currentUtterance = null;
         let speechRecognition = null;
         let isListening = false;
+        let sessionTitles = {};
+        let pinnedSessionIds = [];
 
         const promptInput = document.getElementById('prompt-input');
         const submitBtn = document.getElementById('submit-btn');
@@ -1815,7 +1897,7 @@
 
         async function loadModelsList() {
             try {
-                const response = await fetch("https://gen.pollinations.ai/v1/models");
+                const response = await fetchWithRetry("https://gen.pollinations.ai/v1/models");
                 if (!response.ok) throw new Error("Failed to load models list");
                 const resData = await response.json();
                 const models = resData.data || [];
@@ -1989,9 +2071,17 @@
 
             const storedSessions = localStorage.getItem('aqavox_sessions');
             const storedActiveId = localStorage.getItem('aqavox_active_session_id');
+            const storedTitles = localStorage.getItem('aqavox_session_titles');
+            const storedPinned = localStorage.getItem('aqavox_pinned_sessions');
 
             if (storedSessions) {
                 savedSessions = JSON.parse(storedSessions);
+            }
+            if (storedTitles) {
+                try { sessionTitles = JSON.parse(storedTitles); } catch (e) { sessionTitles = {}; }
+            }
+            if (storedPinned) {
+                try { pinnedSessionIds = JSON.parse(storedPinned); } catch (e) { pinnedSessionIds = []; }
             }
 
             if (storedActiveId && savedSessions[storedActiveId]) {
@@ -2005,6 +2095,7 @@
 
             renderHistorySidebarList();
             updateVaultGrid();
+            updateOnlineStatus();
             toggleVisionMode(false);
             adjustTextareaHeight();
 
@@ -2015,6 +2106,14 @@
                 });
             }
         });
+
+        function updateOnlineStatus() {
+            const banner = document.getElementById('offline-banner');
+            if (!banner) return;
+            banner.style.display = navigator.onLine ? 'none' : 'flex';
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
 
         function toggleSidebarState(e) {
             if (e) e.stopPropagation();
@@ -2087,7 +2186,7 @@
                 }
             ];
             savedSessions[currentSessionId] = conversationHistory;
-            localStorage.setItem('aqavox_active_session_id', currentSessionId);
+            safeSetLocalStorage('aqavox_active_session_id', currentSessionId);
             saveHistoryToStorage();
         }
 
@@ -2109,7 +2208,7 @@
             if (!savedSessions[sessionId]) return;
             currentSessionId = sessionId;
             conversationHistory = savedSessions[sessionId];
-            localStorage.setItem('aqavox_active_session_id', currentSessionId);
+            safeSetLocalStorage('aqavox_active_session_id', currentSessionId);
             
             if (welcomeHero) welcomeHero.remove();
             rebuildFeedFromHistory();
@@ -2122,10 +2221,114 @@
             if (window.innerWidth <= 768) document.body.classList.add('sidebar-hidden');
         }
 
+        function safeSetLocalStorage(key, value, silent) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (err) {
+                if (err && (err.name === 'QuotaExceededError' || err.code === 22 || err.code === 1014)) {
+                    if (!silent) {
+                        appendSystemWarning(
+                            "<strong>Storage limit reached.</strong><br><br>" +
+                            "Your browser's local storage is full, so this chat could not be fully saved. " +
+                            "Export important conversations (MD/JSON buttons in the sidebar) and use <strong>Clear Cache</strong> to free up space, then continue."
+                        );
+                    }
+                } else {
+                    console.error('localStorage write failed:', err);
+                }
+                return false;
+            }
+        }
+
+        const MAX_SAVED_SESSIONS = 80;
+
+        // Removes the oldest, unpinned sessions (never the active one) until at/below keepCount.
+        // Returns true if anything was pruned.
+        function pruneOldestUnpinnedSessions(keepCount) {
+            const prunableIds = Object.keys(savedSessions)
+                .filter(id => id !== currentSessionId && !pinnedSessionIds.includes(id))
+                .sort((a, b) => a.split('_')[1] - b.split('_')[1]); // oldest first
+
+            let pruned = false;
+            while (Object.keys(savedSessions).length > keepCount && prunableIds.length) {
+                const oldestId = prunableIds.shift();
+                delete savedSessions[oldestId];
+                delete sessionTitles[oldestId];
+                pruned = true;
+            }
+            return pruned;
+        }
+
         function saveHistoryToStorage() {
             savedSessions[currentSessionId] = conversationHistory;
-            localStorage.setItem('aqavox_sessions', JSON.stringify(savedSessions));
+
+            if (Object.keys(savedSessions).length > MAX_SAVED_SESSIONS) {
+                pruneOldestUnpinnedSessions(MAX_SAVED_SESSIONS);
+            }
+
+            let ok = safeSetLocalStorage('aqavox_sessions', JSON.stringify(savedSessions), true);
+            if (!ok) {
+                const pruned = pruneOldestUnpinnedSessions(Math.max(10, Object.keys(savedSessions).length - 15));
+                if (pruned) {
+                    ok = safeSetLocalStorage('aqavox_sessions', JSON.stringify(savedSessions), true);
+                    if (ok) {
+                        appendSystemWarning("Freed up storage by removing some of your oldest, unpinned chats so this conversation could be saved. Pin any chats you want to keep permanently.");
+                        renderHistorySidebarList();
+                    }
+                }
+                if (!ok) {
+                    appendSystemWarning(
+                        "<strong>Storage limit reached.</strong><br><br>" +
+                        "Your browser's local storage is full, so this chat could not be fully saved. " +
+                        "Export important conversations (MD/JSON buttons in the sidebar) and use <strong>Clear Cache</strong> to free up space, then continue."
+                    );
+                }
+            }
             updateVaultGrid();
+        }
+
+        function getSessionAutoTitle(id) {
+            const historyData = savedSessions[id];
+            if (!historyData) return 'New chat';
+            const userFirstMsg = historyData.find(m => m.role === 'user');
+            if (!userFirstMsg) return 'New chat';
+            let summaryTitle = typeof userFirstMsg.content === 'string' ? userFirstMsg.content : (userFirstMsg.content[0]?.text || 'New chat');
+            if (summaryTitle.startsWith('[Image Request]: ')) summaryTitle = summaryTitle.replace('[Image Request]: ', '🎨 ');
+            return summaryTitle;
+        }
+
+        function getSessionDisplayTitle(id) {
+            const custom = sessionTitles[id];
+            let title = custom ? custom : getSessionAutoTitle(id);
+            if (title.length > 24) title = title.substring(0, 22) + '...';
+            return title;
+        }
+
+        function buildHistoryItem(id) {
+            const isPinned = pinnedSessionIds.includes(id);
+            const item = document.createElement('div');
+            item.className = `history-item ${id === currentSessionId ? 'active' : ''}`;
+            item.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span class="history-item-title">${escapeHtml(getSessionDisplayTitle(id))}</span>
+                <div class="history-item-actions">
+                    <button type="button" class="hist-action-btn ${isPinned ? 'pinned' : ''}" data-action="pin" title="${isPinned ? 'Unpin chat' : 'Pin chat'}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79L15 12V7a2 2 0 0 0 2-2V4H7v1a2 2 0 0 0 2 2v5l-2.89 1.45A2 2 0 0 0 5 15.24z"></path></svg>
+                    </button>
+                    <button type="button" class="hist-action-btn" data-action="rename" title="Rename chat">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>
+                    </button>
+                    <button type="button" class="hist-action-btn danger" data-action="delete" title="Delete chat">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+            `;
+            item.onclick = () => loadSavedChatSession(id);
+            item.querySelector('[data-action="pin"]').onclick = (e) => toggleChatPin(e, id);
+            item.querySelector('[data-action="rename"]').onclick = (e) => renameChatSession(e, id);
+            item.querySelector('[data-action="delete"]').onclick = (e) => deleteChatSession(e, id);
+            return item;
         }
 
         function renderHistorySidebarList() {
@@ -2134,49 +2337,126 @@
             const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
             const sortedIds = Object.keys(savedSessions).sort((a, b) => b.split('_')[1] - a.split('_')[1]);
-            
-            let matchedCount = 0;
 
-            sortedIds.forEach(id => {
+            const matchesQuery = (id) => {
                 const historyData = savedSessions[id];
-                
-                if (query) {
-                    const matchesQuery = historyData.some(m => {
-                        if (typeof m.content === 'string') {
-                            return m.content.toLowerCase().includes(query);
-                        }
-                        if (Array.isArray(m.content)) {
-                            return m.content.some(item => item.text && item.text.toLowerCase().includes(query));
-                        }
-                        return false;
-                    });
-                    if (!matchesQuery) return;
-                }
+                if (!query) return true;
+                if (getSessionDisplayTitle(id).toLowerCase().includes(query)) return true;
+                return historyData.some(m => {
+                    if (typeof m.content === 'string') {
+                        return m.content.toLowerCase().includes(query);
+                    }
+                    if (Array.isArray(m.content)) {
+                        return m.content.some(item => item.text && item.text.toLowerCase().includes(query));
+                    }
+                    return false;
+                });
+            };
 
-                const userFirstMsg = historyData.find(m => m.role === 'user');
-                if (!userFirstMsg) return; 
+            const validIds = sortedIds.filter(id => savedSessions[id].some(m => m.role === 'user') && matchesQuery(id));
+            const pinnedIds = validIds.filter(id => pinnedSessionIds.includes(id));
+            const unpinnedIds = validIds.filter(id => !pinnedSessionIds.includes(id));
 
-                let summaryTitle = typeof userFirstMsg.content === 'string' ? userFirstMsg.content : (userFirstMsg.content[0]?.text || 'New chat');
-                if (summaryTitle.startsWith('[Image Request]: ')) summaryTitle = summaryTitle.replace('[Image Request]: ', '🎨 ');
-                if (summaryTitle.length > 24) summaryTitle = summaryTitle.substring(0, 22) + '...';
+            if (pinnedIds.length > 0) {
+                const label = document.createElement('div');
+                label.className = 'history-label';
+                label.style.marginTop = '0';
+                label.textContent = 'Pinned';
+                historyListTarget.appendChild(label);
+                pinnedIds.forEach(id => historyListTarget.appendChild(buildHistoryItem(id)));
 
-                const item = document.createElement('div');
-                item.className = `history-item ${id === currentSessionId ? 'active' : ''}`;
-                item.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span>${escapeHtml(summaryTitle)}</span>
-                `;
-                item.onclick = () => loadSavedChatSession(id);
-                historyListTarget.appendChild(item);
-                matchedCount++;
-            });
+                const label2 = document.createElement('div');
+                label2.className = 'history-label';
+                label2.textContent = 'Recent';
+                historyListTarget.appendChild(label2);
+            }
 
-            if (query && matchedCount === 0) {
+            unpinnedIds.forEach(id => historyListTarget.appendChild(buildHistoryItem(id)));
+
+            if (query && validIds.length === 0) {
                 const noMatches = document.createElement('div');
                 noMatches.style.cssText = "font-size: 12px; color: var(--text-sub); text-align: center; padding: 16px 8px;";
                 noMatches.innerText = "No matching chats found.";
                 historyListTarget.appendChild(noMatches);
             }
+        }
+
+        function toggleChatPin(event, id) {
+            event.stopPropagation();
+            const idx = pinnedSessionIds.indexOf(id);
+            if (idx >= 0) pinnedSessionIds.splice(idx, 1);
+            else pinnedSessionIds.push(id);
+            safeSetLocalStorage('aqavox_pinned_sessions', JSON.stringify(pinnedSessionIds));
+            renderHistorySidebarList();
+        }
+
+        function renameChatSession(event, id) {
+            event.stopPropagation();
+            const current = sessionTitles[id] || getSessionAutoTitle(id);
+            const next = window.prompt('Rename chat', current);
+            if (next === null) return;
+            const trimmed = next.trim();
+            if (!trimmed) return;
+            sessionTitles[id] = trimmed;
+            safeSetLocalStorage('aqavox_session_titles', JSON.stringify(sessionTitles));
+            renderHistorySidebarList();
+        }
+
+        function deleteChatSession(event, id) {
+            event.stopPropagation();
+            if (!window.confirm('Delete this chat? This cannot be undone.')) return;
+
+            delete savedSessions[id];
+            delete sessionTitles[id];
+            pinnedSessionIds = pinnedSessionIds.filter(pid => pid !== id);
+
+            safeSetLocalStorage('aqavox_session_titles', JSON.stringify(sessionTitles));
+            safeSetLocalStorage('aqavox_pinned_sessions', JSON.stringify(pinnedSessionIds));
+            safeSetLocalStorage('aqavox_sessions', JSON.stringify(savedSessions));
+
+            if (id === currentSessionId) {
+                const remainingIds = Object.keys(savedSessions).sort((a, b) => b.split('_')[1] - a.split('_')[1]);
+                if (remainingIds.length > 0) {
+                    loadSavedChatSession(remainingIds[0]);
+                } else {
+                    startNewChat();
+                }
+            } else {
+                renderHistorySidebarList();
+            }
+            updateVaultGrid();
+        }
+
+        function editUserMessage(index) {
+            const msg = conversationHistory[index];
+            if (!msg || msg.role !== 'user') return;
+
+            const textToEdit = typeof msg.content === 'string' ? msg.content : (msg.content[0]?.text || '');
+            const priorAttachments = msg.attachments ? JSON.parse(JSON.stringify(msg.attachments)) : [];
+
+            // Drop this message and everything after it — it'll be resent (regenerated) once the user submits the edit.
+            conversationHistory = conversationHistory.slice(0, index);
+
+            const startRow = chatFeedInner.querySelector(`[data-history-index="${index}"]`);
+            if (startRow) {
+                let row = startRow;
+                while (row) {
+                    const next = row.nextElementSibling;
+                    row.remove();
+                    row = next;
+                }
+            }
+
+            uploadedFiles = priorAttachments;
+            renderFilePreviews();
+
+            promptInput.value = textToEdit;
+            adjustTextareaHeight();
+            promptInput.focus();
+
+            saveHistoryToStorage();
+            renderHistorySidebarList();
+            toggleArtifactsPane(false);
         }
 
         function switchSidebarTab(targetTab) {
@@ -2264,7 +2544,7 @@
             const targetImageUrl = `${IMAGE_API_BASE}/${encodeURIComponent(promptText)}?${params.toString()}`;
 
             try {
-                const response = await fetch(targetImageUrl);
+                const response = await fetchWithRetry(targetImageUrl);
                 if (!response.ok) throw new Error("API streaming pipeline handling breakdown.");
                 const blobData = await response.blob();
                 const localUrl = URL.createObjectURL(blobData);
@@ -2272,7 +2552,7 @@
                 renderingContainer.embedImageCard(localUrl, targetImageUrl, promptText);
                 return targetImageUrl;
             } catch (err) {
-                renderingContainer.appendError(`Render pipeline error: ${err.message}`);
+                renderingContainer.appendError(`Render pipeline error: ${err.message}. ${!navigator.onLine ? 'You appear to be offline.' : 'Please try again.'}`);
                 return null;
             }
         }
@@ -2345,8 +2625,8 @@
                 targetModel = 'gemini-search';
             }
 
-            appendUserMessage(rawInput, uploadedFiles);
-            
+            appendUserMessage(rawInput, uploadedFiles, conversationHistory.length);
+
             conversationHistory.push({
                 role: "user",
                 content: rawInput,
@@ -2547,10 +2827,11 @@
             }
         }
 
-        function appendUserMessage(text, attachments) {
+        function appendUserMessage(text, attachments, historyIndex) {
             const msgRow = document.createElement('div');
             msgRow.className = 'message user';
-            
+            if (historyIndex !== undefined) msgRow.dataset.historyIndex = historyIndex;
+
             let filesHtml = "";
             if (attachments && attachments.length > 0) {
                 attachments.forEach(f => {
@@ -2565,7 +2846,14 @@
                 });
             }
 
-            msgRow.innerHTML = `<div class="bubble">${filesHtml}${escapeHtml(text)}</div>`;
+            const editBtnHtml = historyIndex !== undefined ? `
+                <div class="message-actions" style="justify-content: flex-end;">
+                    <button class="action-btn" onclick="editUserMessage(${historyIndex})" title="Edit and regenerate">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg> Edit
+                    </button>
+                </div>` : '';
+
+            msgRow.innerHTML = `<div class="bubble">${filesHtml}${escapeHtml(text)}</div>${editBtnHtml}`;
             chatFeedInner.appendChild(msgRow);
         }
 
@@ -2623,7 +2911,7 @@
                     if (txt) {
                         html += marked.parse(txt);
                     }
-                    textContentNode.innerHTML = html;
+                    textContentNode.innerHTML = sanitizeHtml(html);
                     addCopyButtonsToCodeBlocks(textContentNode);
                 },
                 removeLoading: () => { if (loaderNode) loaderNode.remove(); },
@@ -2659,10 +2947,10 @@
 
         function rebuildFeedFromHistory() {
             chatFeedInner.innerHTML = '';
-            conversationHistory.forEach(msg => {
+            conversationHistory.forEach((msg, idx) => {
                 if (msg.role === 'system') return;
                 if (msg.role === 'user') {
-                    appendUserMessage(msg.content, msg.attachments);
+                    appendUserMessage(msg.content, msg.attachments, idx);
                 } else if (msg.role === 'assistant') {
                     const containsImage = typeof msg.content === 'string' && msg.content.includes('__IMAGE_BLOB__:');
                     
@@ -2724,6 +3012,15 @@
 
         function scrollToBottom() { chatFeed.scrollTop = chatFeed.scrollHeight; }
         function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+
+        // Sanitizes AI-rendered markdown HTML to prevent XSS from model output or prompt-injected content.
+        function sanitizeHtml(html) {
+            if (typeof DOMPurify !== 'undefined') {
+                return DOMPurify.sanitize(html, { ADD_ATTR: ['target', 'rel'] });
+            }
+            console.warn('DOMPurify unavailable — falling back to escaped plain text.');
+            return escapeHtml(html);
+        }
 
         // --- Premium Custom Optimizations (Templates, Search, Exports, Artifacts) ---
         let activeArtifactContent = "";
@@ -3261,6 +3558,16 @@
                 if (!submitBtn.disabled) runConversationTurn();
             }
         });
+
+        // Register the app-shell service worker for offline/installable support (PWA).
+        // Silently no-ops on browsers/contexts that don't support it (e.g. plain file:// access).
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.warn('Service worker registration skipped:', err.message);
+                });
+            });
+        }
     </script>
 </body>
 </html>

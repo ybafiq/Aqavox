@@ -166,9 +166,10 @@
         .sidebar-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
-            height: 40px;
-            padding: 0 4px;
+            height: 44px;
+            padding: 0 4px 0 8px;
             overflow: hidden;
             flex-shrink: 0;
         }
@@ -176,8 +177,8 @@
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 20px;
+            gap: 10px;
+            font-size: 21px;
             font-weight: 700;
             letter-spacing: -0.5px;
             white-space: nowrap;
@@ -256,112 +257,196 @@
             display: none;
         }
 
-        /* Sidebar Bottom Menu (Gemini-style) */
-        .sidebar-bottom {
-            margin-top: auto;
+        /* --- Sidebar Search Field --- */
+        .sidebar-search {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 12px;
+            align-items: center;
+            gap: 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 0 14px;
+            height: 42px;
+            flex-shrink: 0;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .sidebar-search:focus-within {
+            border-color: var(--y-accent);
+            box-shadow: var(--accent-glow);
+        }
+
+        .sidebar-search svg {
+            color: var(--text-sub);
             flex-shrink: 0;
         }
 
-        .bottom-item {
+        .sidebar-search input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 13px;
+            height: 100%;
+            padding: 0;
+        }
+
+        /* --- Panel Title (Settings / Vault headers) --- */
+        .panel-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: -0.2px;
+            padding: 2px 4px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* --- Sidebar Footer (single nav + overflow) --- */
+        .sidebar-footer {
+            margin-top: auto;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
+            justify-content: space-between;
+            gap: 6px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .footer-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .footer-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            flex: 1;
+            min-width: 0;
+            height: 52px;
+            padding: 6px 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 13.5px;
-            color: var(--text-sub);
-            transition: all 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
+            transition: background 0.2s, color 0.2s;
         }
 
-        .bottom-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-        body.theme-light .bottom-item:hover {
-            background: rgba(0, 0, 0, 0.04);
+        .footer-more-btn {
+            flex: 0 0 44px;
+            width: 44px;
         }
 
-        .bottom-item.active {
-            background: rgba(0, 229, 255, 0.1);
-            color: var(--y-accent);
-            font-weight: 500;
-        }
-
-        .bottom-item.active svg {
-            color: var(--y-accent);
-        }
-
-        .bottom-item svg {
+        .footer-nav-btn svg {
             flex-shrink: 0;
             transition: color 0.2s;
         }
 
-        .bottom-item .bottom-text {
-            transition: opacity 0.15s ease;
-        }
-
-        body.sidebar-collapsed .sidebar-bottom {
-            border-top: none;
-            padding-top: 0;
-            align-items: center;
-            gap: 12px;
-        }
-
-        body.sidebar-collapsed .bottom-item {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        body.sidebar-collapsed .bottom-item .bottom-text {
-            display: none;
-        }
-
-        .sidebar-tabs {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            background: var(--bg-color);
-            padding: 4px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            padding: 8px 6px;
-            font-size: 12px;
+        .footer-nav-label {
+            font-size: 10.5px;
             font-weight: 500;
-            cursor: pointer;
-            border-radius: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1;
         }
 
-        .tab-btn:hover {
+        .footer-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
         }
-
-        .tab-btn.active {
-            background: var(--panel-bg);
-            color: var(--y-accent);
-            box-shadow: var(--shadow-soft);
+        body.theme-light .footer-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
         }
-        body.theme-light .tab-btn.active {
-            background: #ffffff;
+
+        .footer-nav-btn.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--y-accent);
+        }
+        body.theme-light .footer-nav-btn.active {
+            background: color-mix(in srgb, var(--y-accent) 12%, transparent);
+        }
+
+        /* --- Footer Overflow Menu --- */
+        .footer-overflow {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .footer-menu {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            right: 0;
+            min-width: 200px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-elevated);
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 200;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .footer-menu-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-sub);
+            padding: 6px 10px 4px;
+        }
+
+        .footer-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .footer-menu-item svg {
+            flex-shrink: 0;
+            color: var(--text-sub);
+            transition: color 0.15s;
+        }
+
+        .footer-menu-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        body.theme-light .footer-menu-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .footer-menu-item.danger:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .footer-menu-item.danger:hover svg {
+            color: #ff6b6b;
+        }
+
+        .footer-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 5px 8px;
         }
 
         .panel-content {
@@ -399,6 +484,22 @@
             gap: 4px;
             max-height: 240px;
             overflow-y: auto;
+        }
+
+        .history-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 12.5px;
+            line-height: 1.5;
+            padding: 40px 16px;
+        }
+
+        .history-empty svg {
+            opacity: 0.5;
         }
 
         .history-item {
@@ -1571,15 +1672,8 @@
 <body class="sidebar-hidden">
     <aside class="sidebar" id="app-sidebar">
         <div class="sidebar-header">
-            <button class="menu-toggle-btn" title="Collapse Sidebar" onclick="toggleSidebarState(event)">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
             <div class="logo-container">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L14.76 8.76L21.52 11.52L14.76 14.28L12 21.04L9.24 14.28L2.48 11.52L9.24 8.76L12 2Z" fill="url(#y-studio-grad)"/>
                     <defs>
                         <linearGradient id="y-studio-grad" x1="2" y1="2" x2="21.52" y2="21.04" gradientUnits="userSpaceOnUse">
@@ -1590,6 +1684,12 @@
                 </svg>
                 <span class="logo-text">Aqavox</span>
             </div>
+            <button class="menu-toggle-btn" title="Hide sidebar" onclick="toggleSidebarState(event)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                    <line x1="9" y1="4" x2="9" y2="20"></line>
+                </svg>
+            </button>
         </div>
 
         <button class="new-chat-btn" onclick="startNewChat()" title="New Chat">
@@ -1600,24 +1700,23 @@
             <span class="btn-text">New Chat</span>
         </button>
 
-        <div class="sidebar-tabs">
-            <button id="tab-chats" class="tab-btn active" onclick="switchSidebarTab('chats')">Chats</button>
-            <button id="tab-config" class="tab-btn" onclick="switchSidebarTab('config')">Settings</button>
-            <button id="tab-vault" class="tab-btn" onclick="switchSidebarTab('vault')">Vault</button>
-        </div>
-
         <div class="panel-content" id="sidebar-panel-container">
-            <div id="panel-chats" style="display: flex; flex-direction: column; gap: 12px;">
+            <div id="panel-chats" style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="sidebar-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="history-search-input" placeholder="Search conversations..." onkeyup="filterChatsList()">
+                </div>
                 <div class="history-section" style="margin-top: 0; border-top: none; padding-top: 0;">
-                    <div style="margin-bottom: 8px;">
-                        <input type="text" id="history-search-input" placeholder="Search conversations..." style="width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 13px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;" onkeyup="filterChatsList()">
-                    </div>
                     <div class="history-list" id="history-list-target" style="max-height: none; flex: 1;">
                         </div>
                 </div>
             </div>
 
-            <div id="panel-config" style="display: none; flex-direction: column; gap: 20px;">
+            <div id="panel-config" style="display: none; flex-direction: column; gap: 18px;">
+                <div class="panel-title">Settings</div>
                 <div class="setting-group">
                     <label for="api-key">Pollinations API Key</label>
                     <input type="password" id="api-key" placeholder="Paste pk_ or sk_ key..." autocomplete="off" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-size: 13px;">
@@ -1674,44 +1773,62 @@
             </div>
 
             <div id="panel-vault" style="display: none;">
+                <div class="panel-title">Asset Vault</div>
                 <div class="vault-grid" id="vault-grid-target"></div>
             </div>
         </div>
-        
-        <div class="sidebar-bottom">
-            <div class="bottom-item active" id="bottom-chats" onclick="handleBottomItemClick('chats')" title="Recent Chats">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span class="bottom-text">Recent Chats</span>
-            </div>
-            <div class="bottom-item" id="bottom-config" onclick="handleBottomItemClick('config')" title="Settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-                <span class="bottom-text">Settings</span>
-            </div>
-            <div class="bottom-item" id="bottom-vault" onclick="handleBottomItemClick('vault')" title="Asset Vault">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <span class="bottom-text">Asset Vault</span>
-            </div>
-            <div class="bottom-item" onclick="clearAllDataCache()" title="Clear Cache">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"></path>
-                </svg>
-                <span class="bottom-text">Clear Cache</span>
-            </div>
-            <div class="export-section" style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 4px;">
-                <div class="bottom-text" style="font-size: 9px; color: var(--text-sub); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; padding-left: 12px; margin-bottom: 6px;">Export Chat</div>
-                <div style="display: flex; gap: 4px; padding: 0 8px;">
-                    <button onclick="exportChatSession('md')" class="action-btn" style="flex:1; margin-top:0; font-size:10px; padding: 6px; border-radius:6px; cursor:pointer;" title="Export as Markdown">MD</button>
-                    <button onclick="exportChatSession('json')" class="action-btn" style="flex:1; margin-top:0; font-size:10px; padding: 6px; border-radius:6px; cursor:pointer;" title="Export as JSON Data">JSON</button>
-                    <button onclick="exportChatSession('pdf')" class="action-btn" style="flex:1; margin-top:0; font-size:10px; padding: 6px; border-radius:6px; cursor:pointer;" title="Export as PDF Document">PDF</button>
+
+        <div class="sidebar-footer">
+            <nav class="footer-nav">
+                <button class="footer-nav-btn active" id="bottom-chats" onclick="handleBottomItemClick('chats')" title="Chats">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span class="footer-nav-label">Chats</span>
+                </button>
+                <button class="footer-nav-btn" id="bottom-vault" onclick="handleBottomItemClick('vault')" title="Asset Vault">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span class="footer-nav-label">Vault</span>
+                </button>
+                <button class="footer-nav-btn" id="bottom-config" onclick="handleBottomItemClick('config')" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span class="footer-nav-label">Settings</span>
+                </button>
+            </nav>
+            <div class="footer-overflow">
+                <button class="footer-nav-btn footer-more-btn" onclick="toggleFooterMenu(event)" title="More options">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="5" r="1.6"></circle>
+                        <circle cx="12" cy="12" r="1.6"></circle>
+                        <circle cx="12" cy="19" r="1.6"></circle>
+                    </svg>
+                </button>
+                <div class="footer-menu" id="footer-menu" style="display: none;">
+                    <div class="footer-menu-label">Export chat</div>
+                    <button class="footer-menu-item" onclick="exportChatSession('md'); toggleFooterMenu();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Markdown (.md)</span>
+                    </button>
+                    <button class="footer-menu-item" onclick="exportChatSession('json'); toggleFooterMenu();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>JSON data (.json)</span>
+                    </button>
+                    <button class="footer-menu-item" onclick="exportChatSession('pdf'); toggleFooterMenu();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Document (.pdf)</span>
+                    </button>
+                    <div class="footer-menu-divider"></div>
+                    <button class="footer-menu-item danger" onclick="clearAllDataCache(); toggleFooterMenu();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"></path></svg>
+                        <span>Clear cache</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -2156,6 +2273,24 @@
             }
         });
 
+        // --- Sidebar Footer Overflow Menu ---
+        function toggleFooterMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('footer-menu');
+            if (!menu) return;
+            const isHidden = (menu.style.display === 'none' || !menu.style.display);
+            menu.style.display = isHidden ? 'flex' : 'none';
+        }
+
+        document.addEventListener('click', (event) => {
+            const menu = document.getElementById('footer-menu');
+            if (!menu || menu.style.display !== 'flex') return;
+            const overflow = menu.closest('.footer-overflow');
+            if (overflow && !overflow.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         function triggerMenuAttach(event) {
             if (event) event.stopPropagation();
             document.getElementById('plus-menu').style.display = 'none';
@@ -2373,11 +2508,19 @@
 
             unpinnedIds.forEach(id => historyListTarget.appendChild(buildHistoryItem(id)));
 
-            if (query && validIds.length === 0) {
-                const noMatches = document.createElement('div');
-                noMatches.style.cssText = "font-size: 12px; color: var(--text-sub); text-align: center; padding: 16px 8px;";
-                noMatches.innerText = "No matching chats found.";
-                historyListTarget.appendChild(noMatches);
+            if (validIds.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'history-empty';
+                if (query) {
+                    empty.innerHTML = `
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <span>No matching chats found.</span>`;
+                } else {
+                    empty.innerHTML = `
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>No conversations yet.<br>Start a new chat to see it here.</span>`;
+                }
+                historyListTarget.appendChild(empty);
             }
         }
 

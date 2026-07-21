@@ -1,8 +1,8 @@
 // Aqavox minimal app-shell service worker.
 // Only caches the local static shell so the UI can still open offline.
 // All API calls (Pollinations, CDN libraries) always go to the network untouched.
-const CACHE_NAME = 'aqavox-shell-v1';
-const SHELL_FILES = ['./index.html', './manifest.json', './Aqavox.png'];
+const CACHE_NAME = 'aqavox-shell-v2';
+const SHELL_FILES = ['./index.html', './styles.css', './app.js', './manifest.json', './Aqavox.png'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
